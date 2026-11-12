@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Lost & Found Agent</title>
+    <!-- Google Fonts for better typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --bg: #F3F4F6;
+            --panel-bg: #FFFFFF;
+            --text-main: #111827;
+            --text-muted: #6B7280;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --info: #3B82F6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .header {
+            background-color: var(--panel-bg);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .header h1 { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 3rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--panel-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border);
+        }
+
+        .panel h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Forms */
+        .form-group { margin-bottom: 1rem; }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: var(--text-muted);
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        
+        button.btn-primary {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+        button.btn-primary:hover { background-color: var(--primary-hover); }
+
+        /* Stats Bar */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-card {
+            background: #F9FAFB;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-top: 0.25rem; }
+
+        /* Trace Timeline */
+        .trace-container {
+            max-height: 350px;
+            overflow-y: auto;
+            background: #F8FAFC;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .trace-item {
+            display: flex;
+            align-items: center;
+            padding: 0.6rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid var(--info);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            font-size: 0.85rem;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .trace-item.goal { border-left-color: var(--success); background: #ECFDF5; }
+        .trace-item.prune { border-left-color: var(--danger); opacity: 0.6; }
+        
+        .trace-badge {
+            padding: 0.15rem 0.5rem;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-right: 0.75rem;
+            background: #DBEAFE;
+            color: var(--info);
+        }
+        .trace-item.goal .trace-badge { background: #D1FAE5; color: var(--success); }
+        .trace-item.prune .trace-badge { background: #FEE2E2; color: var(--danger); }
+        
+        .trace-details { display: flex; gap: 1rem; color: var(--text-muted); font-family: monospace; }
+        .trace-details strong { color: var(--text-main); }
+
+        /* Match Cards */
+        .match-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--success);
+        }
+        .match-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        .match-title { font-weight: 600; font-size: 1rem; }
+        
+        .similarity-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #E5E7EB;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        .similarity-bar {
+            height: 100%;
+            background: var(--success);
+            border-radius: 4px;
+            transition: width 0.5s ease-out;
+        }
+
+        .breakdown {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+        }
+        .breakdown-tag {
+            background: #F3F4F6;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        .empty-state { text-align: center; padding: 2rem; color: var(--text-muted); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🔍 AI Lost & Found Matching Agent</h1>
+        <p>Combined Hierarchical Best-First Search Strategy</p>
+    </div>
+
+    <div class="container">
+        <!-- LEFT COLUMN: Input Form -->
+        <div class="panel">
+            <h2>📝 Report Lost Item</h2>
+            <form id="lostForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="category" class="form-control" required>
+                            <option value="1">Electronics</option>
+                            <option value="2">Phone</option>
+                            <option value="3">Wallet</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <select id="zone" class="form-control" required>
+                            <option value="1">Library</option>
+                            <option value="2">Canteen</option>
+                            <option value="3">Main Gate</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Color</label>
+                        <select id="color" class="form-control">
+                            <option value="">-- Optional --</option>
+                            <option value="1">Black</option>
+                            <option value="2">Brown</option>
+                            <option value="3">Navy</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Brand</label>
+                        <input type="text" id="brand" class="form-control" placeholder="e.g., Apple">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Date & Time Lost</label>
+                    <input type="datetime-local" id="lostTime" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="description" class="form-control" rows="3" placeholder="e.g., Black iphone found near the library entrance"></textarea>
+                </div>
+
+                <div class="form-row" style="border-top: 1px solid #E5E7EB; padding-top: 1rem; margin-top: 1rem;">
+                    <div class="form-group">
+                        <label>Threshold (τ)</label>
+                        <input type="number" id="tau" class="form-control" value="0.70" step="0.01" min="0" max="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Results (k)</label>
+                        <input type="number" id="k" class="form-control" value="5" min="1">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Run Search Algorithm</button>
+            </form>
+        </div>
+
+        <!-- RIGHT COLUMN: Results & Visualization -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            
+            <!-- Search Stats & Trace -->
+            <div class="panel">
+                <h2>🧠 Search Visualization</h2>
+                
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-label">Nodes Explored</div>
+                        <div class="stat-value" id="statNodes">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Best Path Cost</div>
+                        <div class="stat-value" id="statCost">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Status</div>
+                        <div class="stat-value" id="statStatus" style="font-size: 1.1rem;">Idle</div>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-muted);">Solution Path (Trace Log)</h3>
+                <div class="trace-container" id="traceLog">
+                    <div class="empty-state">Waiting for search input...</div>
+                </div>
+            </div>
+
+            <!-- Match Results (Goal State) -->
+            <div class="panel">
+                <h2>🎯 Match Results (Goal State)</h2>
+                <div id="results" class="empty-state">
+                    No matches found yet. Submit a lost item to begin.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('lostForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Reset UI State
+            const statNodes = document.getElementById('statNodes');
+            const statCost = document.getElementById('statCost');
+            const statStatus = document.getElementById('statStatus');
+            const traceLog = document.getElementById('traceLog');
+            const resultsDiv = document.getElementById('results');
+
+            statNodes.textContent = '...';
+            statCost.textContent = '...';
+            statStatus.textContent = 'Searching';
+            statStatus.style.color = 'var(--info)';
+            traceLog.innerHTML = '<div class="empty-state">Executing algorithm...</div>';
+            resultsDiv.innerHTML = '<div class="empty-state">Calculating similarities...</div>';
+
+            const payload = {
+                action: 'search',
+                category_id: document.getElementById('category').value,
+                zone_id: document.getElementById('zone').value,
+                color_id: document.getElementById('color').value || null,
+                brand_raw: document.getElementById('brand').value,
+                event_datetime: document.getElementById('lostTime').value.replace('T', ' '),
+                description_raw: document.getElementById('description').value,
+                tau: parseFloat(document.getElementById('tau').value),
+                k: parseInt(document.getElementById('k').value)
+            };
+
+            try {
+                const res = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+
+                if (data.error) {
+                    statStatus.textContent = 'Error';
+                    statStatus.style.color = 'var(--danger)';
+                    resultsDiv.innerHTML = `<p style="color:var(--danger)">${data.error}</p>`;
+                    return;
+                }
+
+                // Update Stats
+                const hasResults = data.results.length > 0;
+                statNodes.textContent = data.nodes_explored;
+                statCost.textContent = hasResults ? data.results[0].path_cost.toFixed(4) : 'N/A';
+                statStatus.textContent = hasResults ? 'Match Found' : 'No Match';
+                statStatus.style.color = hasResults ? 'var(--success)' : 'var(--danger)';
+
+                // Render Trace Timeline
+                traceLog.innerHTML = data.trace.map(t => {
+                    let badgeClass = 'expand';
+                    let badgeText = t.action.replace('_', ' ');
+                    
+                    if (t.action === 'goal') { badgeClass = 'goal'; badgeText = 'Goal Found'; }
+                    else if (t.action.includes('prune')) { badgeClass = 'prune'; badgeText = 'Pruned'; }
+
+                    // Format node ID (show item ID if it exists, otherwise show hierarchy level)
+                    let nodeName = t.node_id ? `Item #${t.node_id}` : `Level: ${t.type}`;
+
+                    return `
+                        <div class="trace-item ${badgeClass}">
+                            <span class="trace-badge">${badgeText}</span>
+                            <div class="trace-details">
+                                <span><strong>${nodeName}</strong></span>
+                                <span>Ŝ: ${(t.s_hat || 0).toFixed(4)}</span>
+                                <span>h: ${(t.h || 0).toFixed(4)}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Render Match Cards
+                if (!hasResults) {
+                    resultsDiv.innerHTML = `
+                        <div class="empty-state" style="color: var(--danger);">
+                            <h3>No matches found above threshold (τ = ${payload.tau})</h3>
+                            <p>Try lowering the threshold or changing the search criteria.</p>
+                        </div>`;
+                } else {
+                    resultsDiv.innerHTML = data.results.map(r => {
+                        const percentage = (r.similarity * 100).toFixed(1);
+                        
+                        // Format breakdown tags
+                        let breakdownHtml = '';
+                        if (r.breakdown) {
+                            for (const [key, val] of Object.entries(r.breakdown)) {
+                                breakdownHtml += `<span class="breakdown-tag">${key}: ${val.toFixed(2)}</span>`;
+                            }
+                        }
+
+                        return `
+                            <div class="match-card">
+                                <div class="match-header">
+                                    <div class="match-title">Found Item #${r.found_id}</div>
+                                    <div style="font-weight: 700; color: var(--success);">${percentage}% Match</div>
+                                </div>
+                                <div class="similarity-bar-container">
+                                    <div class="similarity-bar" style="width: ${percentage}%"></div>
+                                </div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">
+                                    Path Cost: ${r.path_cost.toFixed(4)}
+                                </div>
+                                <div class="breakdown">
+                                    ${breakdownHtml}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+            } catch (err) {
+                statStatus.textContent = 'Offline';
+                statStatus.style.color = 'var(--danger)';
+                resultsDiv.innerHTML = `<p style="color:var(--danger)">Error connecting to server: ${err.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

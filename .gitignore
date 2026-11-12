@@ -1,0 +1,3 @@
+node_modules/
+lost_found.sqlite
+.env
