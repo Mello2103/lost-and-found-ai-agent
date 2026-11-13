@@ -3,215 +3,313 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Lost & Found Agent</title>
-    <!-- Google Fonts for better typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Cozy Lost & Found AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* --- COZY LIGHT MODE --- */
         :root {
-            --primary: #4F46E5;
-            --primary-hover: #4338CA;
-            --bg: #F3F4F6;
+            --primary: #D4826A; /* Soft Terracotta */
+            --primary-hover: #B86B54;
+            --bg: #FAF7F2; /* Warm Cream */
             --panel-bg: #FFFFFF;
-            --text-main: #111827;
-            --text-muted: #6B7280;
-            --border: #E5E7EB;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --danger: #EF4444;
-            --info: #3B82F6;
+            --text-main: #4A4A4A; /* Soft Charcoal */
+            --text-muted: #8E8E8E;
+            --border: #F0EBE1;
+            --stat-bg: #FDFBF7;
+            --trace-bg: #F7F4EE;
+            --trace-item-bg: #FFFFFF;
+            --tag-bg: #F4EFE6;
+            
+            --success: #7FA983; /* Soft Sage Green */
+            --success-bg: #EFF5EF;
+            --danger: #D98282; /* Soft Rose */
+            --danger-bg: #FCECEC;
+            --info: #8BA8C1; /* Soft Dusty Blue */
+            --info-bg: #EFF4F8;
+
+            --shadow: 0 8px 24px rgba(180, 160, 140, 0.08);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* --- COZY DARK MODE --- */
+        [data-theme="dark"] {
+            --bg: #1E1E20; /* Warm dark charcoal */
+            --panel-bg: #2A2A2D;
+            --text-main: #E8E6E3; /* Warm off-white */
+            --text-muted: #9E9C98;
+            --border: #3A3A3D;
+            --stat-bg: #222224;
+            --trace-bg: #202022;
+            --trace-item-bg: #2F2F32;
+            --tag-bg: #3A3A3D;
+            
+            --success-bg: rgba(127, 169, 131, 0.15);
+            --danger-bg: rgba(217, 130, 130, 0.15);
+            --info-bg: rgba(139, 168, 193, 0.15);
+
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+        }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Nunito', sans-serif;
             background-color: var(--bg);
             color: var(--text-main);
-            line-height: 1.5;
+            line-height: 1.6;
+            min-height: 100vh;
         }
 
+        /* Header */
         .header {
-            background-color: var(--panel-bg);
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--border);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
+            padding: 2.5rem 2rem 1.5rem 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .header h1 { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-        .header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
+        .header h1 { 
+            font-family: 'Lora', serif;
+            font-size: 1.8rem; 
+            font-weight: 600; 
+            color: var(--text-main); 
+            letter-spacing: -0.5px;
+        }
+        .header p { 
+            color: var(--text-muted); 
+            font-size: 0.95rem; 
+            margin-top: 0.2rem; 
+            font-style: italic;
+        }
 
+        /* --- NEW CLEAN TOGGLE BUTTON --- */
+        .theme-toggle {
+            position: relative;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover {
+            background: var(--trace-bg);
+            color: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        .theme-toggle svg {
+            position: absolute;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        /* Default: show moon, hide sun */
+        #moonIcon { opacity: 1; transform: rotate(0deg) scale(1); }
+        #sunIcon { opacity: 0; transform: rotate(-90deg) scale(0.5); pointer-events: none; }
+
+        /* Dark Mode: hide moon, show sun */
+        [data-theme="dark"] #moonIcon { opacity: 0; transform: rotate(90deg) scale(0.5); pointer-events: none; }
+        [data-theme="dark"] #sunIcon { opacity: 1; transform: rotate(0deg) scale(1); }
+        [data-theme="dark"] .theme-toggle:hover { color: #FDE047; } /* Sun glows yellow */
+
+        /* Layout */
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 0 2rem 3rem 2rem;
+            padding: 1rem 2rem 4rem 2rem;
             display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 2rem;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 2.5rem;
             align-items: start;
         }
 
         /* Panels */
         .panel {
             background: var(--panel-bg);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow);
             border: 1px solid var(--border);
         }
 
         .panel h2 {
-            font-size: 1.1rem;
-            margin-bottom: 1.25rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border);
+            font-family: 'Lora', serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
         /* Forms */
-        .form-group { margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1.2rem; }
         .form-group label {
             display: block;
             font-size: 0.85rem;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 0.4rem;
             color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .form-control {
             width: 100%;
-            padding: 0.6rem 0.75rem;
+            padding: 0.8rem 1rem;
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: var(--radius-sm);
             font-family: inherit;
             font-size: 0.95rem;
-            transition: border-color 0.2s;
+            background-color: var(--stat-bg);
+            color: var(--text-main);
+            transition: all 0.3s ease;
         }
         .form-control:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            background-color: var(--panel-bg);
+            box-shadow: 0 0 0 4px rgba(212, 130, 106, 0.1);
         }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         
         button.btn-primary {
             width: 100%;
             background-color: var(--primary);
-            color: white;
+            color: #FFFFFF;
             border: none;
-            padding: 0.75rem;
-            border-radius: 6px;
-            font-weight: 600;
+            padding: 0.9rem;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-weight: 700;
             font-size: 1rem;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
             margin-top: 1rem;
+            box-shadow: 0 4px 12px rgba(212, 130, 106, 0.2);
         }
-        button.btn-primary:hover { background-color: var(--primary-hover); }
+        button.btn-primary:hover { 
+            background-color: var(--primary-hover); 
+            transform: translateY(-2px);
+        }
 
         /* Stats Bar */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
         .stat-card {
-            background: #F9FAFB;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
+            background: var(--stat-bg);
+            border-radius: var(--radius-md);
+            padding: 1.2rem 1rem;
             text-align: center;
+            border: 1px solid var(--border);
         }
-        .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
-        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-top: 0.25rem; }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; }
+        .stat-value { font-family: 'Lora', serif; font-size: 1.6rem; font-weight: 600; color: var(--text-main); margin-top: 0.3rem; }
 
         /* Trace Timeline */
         .trace-container {
-            max-height: 350px;
+            max-height: 300px;
             overflow-y: auto;
-            background: #F8FAFC;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            background: var(--trace-bg);
+            border-radius: var(--radius-md);
             padding: 1rem;
+            border: 1px solid var(--border);
         }
         .trace-item {
             display: flex;
             align-items: center;
-            padding: 0.6rem;
-            margin-bottom: 0.5rem;
-            background: white;
-            border-radius: 6px;
-            border-left: 4px solid var(--info);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.6rem;
+            background: var(--trace-item-bg);
+            border-radius: var(--radius-sm);
             font-size: 0.85rem;
-            animation: fadeIn 0.3s ease-in-out;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            animation: fadeIn 0.4s ease-out;
         }
-        .trace-item.goal { border-left-color: var(--success); background: #ECFDF5; }
-        .trace-item.prune { border-left-color: var(--danger); opacity: 0.6; }
+        .trace-item.goal { border-left: 4px solid var(--success); background: var(--success-bg); }
+        .trace-item.prune { border-left: 4px solid var(--danger); opacity: 0.6; }
+        .trace-item.expand { border-left: 4px solid var(--info); }
         
         .trace-badge {
-            padding: 0.15rem 0.5rem;
+            padding: 0.2rem 0.6rem;
             border-radius: 99px;
             font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
-            margin-right: 0.75rem;
-            background: #DBEAFE;
+            margin-right: 1rem;
+            background: var(--info-bg);
             color: var(--info);
         }
-        .trace-item.goal .trace-badge { background: #D1FAE5; color: var(--success); }
-        .trace-item.prune .trace-badge { background: #FEE2E2; color: var(--danger); }
+        .trace-item.goal .trace-badge { background: var(--success-bg); color: var(--success); }
+        .trace-item.prune .trace-badge { background: var(--danger-bg); color: var(--danger); }
         
         .trace-details { display: flex; gap: 1rem; color: var(--text-muted); font-family: monospace; }
-        .trace-details strong { color: var(--text-main); }
+        .trace-details strong { color: var(--text-main); font-family: 'Nunito', sans-serif;}
 
         /* Match Cards */
         .match-card {
-            background: white;
+            background: var(--panel-bg);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
             margin-bottom: 1rem;
-            border-left: 4px solid var(--success);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
         }
-        .match-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-        .match-title { font-weight: 600; font-size: 1rem; }
+        .match-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .match-title { font-family: 'Lora', serif; font-weight: 600; font-size: 1.1rem; }
         
         .similarity-bar-container {
             width: 100%;
-            height: 8px;
-            background: #E5E7EB;
-            border-radius: 4px;
+            height: 10px;
+            background: var(--stat-bg);
+            border-radius: 10px;
             overflow: hidden;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
+            border: 1px solid var(--border);
         }
         .similarity-bar {
             height: 100%;
             background: var(--success);
-            border-radius: 4px;
-            transition: width 0.5s ease-out;
+            border-radius: 10px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .breakdown {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin-top: 0.75rem;
+            margin-top: 1rem;
             font-size: 0.75rem;
         }
         .breakdown-tag {
-            background: #F3F4F6;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
+            background: var(--stat-bg);
+            padding: 0.3rem 0.6rem;
+            border-radius: var(--radius-sm);
             color: var(--text-muted);
+            border: 1px solid var(--border);
         }
 
-        .empty-state { text-align: center; padding: 2rem; color: var(--text-muted); }
+        .empty-state { text-align: center; padding: 2rem; color: var(--text-muted); font-style: italic; }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -223,14 +321,35 @@
 <body>
 
     <div class="header">
-        <h1>🔍 AI Lost & Found Matching Agent</h1>
-        <p>Combined Hierarchical Best-First Search Strategy</p>
+        <div>
+            <h1>Lost & Found AI</h1>
+            <p>Combined Hierarchical Best-First Search Strategy</p>
+        </div>
+        <!-- Clean SVG Toggle Button -->
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
+            <!-- Moon Icon (Visible in Light Mode) -->
+            <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <!-- Sun Icon (Visible in Dark Mode) -->
+            <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+        </button>
     </div>
 
     <div class="container">
         <!-- LEFT COLUMN: Input Form -->
         <div class="panel">
-            <h2>📝 Report Lost Item</h2>
+            <h2>☕ Report an Item</h2>
             <form id="lostForm">
                 <div class="form-row">
                     <div class="form-group">
@@ -274,10 +393,10 @@
 
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea id="description" class="form-control" rows="3" placeholder="e.g., Black iphone found near the library entrance"></textarea>
+                    <textarea id="description" class="form-control" rows="3" placeholder="Describe the item..."></textarea>
                 </div>
 
-                <div class="form-row" style="border-top: 1px solid #E5E7EB; padding-top: 1rem; margin-top: 1rem;">
+                <div class="form-row" style="border-top: 1px solid var(--border); padding-top: 1.2rem; margin-top: 1.2rem;">
                     <div class="form-group">
                         <label>Threshold (τ)</label>
                         <input type="number" id="tau" class="form-control" value="0.70" step="0.01" min="0" max="1">
@@ -288,16 +407,16 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-primary">Run Search Algorithm</button>
+                <button type="submit" class="btn-primary">Search for Match</button>
             </form>
         </div>
 
         <!-- RIGHT COLUMN: Results & Visualization -->
-        <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <div style="display: flex; flex-direction: column; gap: 2.5rem;">
             
             <!-- Search Stats & Trace -->
             <div class="panel">
-                <h2>🧠 Search Visualization</h2>
+                <h2>🌿 Search Visualization</h2>
                 
                 <div class="stats-grid" id="statsGrid">
                     <div class="stat-card">
@@ -310,21 +429,21 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Status</div>
-                        <div class="stat-value" id="statStatus" style="font-size: 1.1rem;">Idle</div>
+                        <div class="stat-value" id="statStatus" style="font-size: 1.2rem;">Idle</div>
                     </div>
                 </div>
 
-                <h3 style="font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-muted);">Solution Path (Trace Log)</h3>
+                <h3 style="font-size: 0.85rem; margin-bottom: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Solution Path (Trace Log)</h3>
                 <div class="trace-container" id="traceLog">
-                    <div class="empty-state">Waiting for search input...</div>
+                    <div class="empty-state">Waiting for input...</div>
                 </div>
             </div>
 
             <!-- Match Results (Goal State) -->
             <div class="panel">
-                <h2>🎯 Match Results (Goal State)</h2>
+                <h2>✨ Match Results</h2>
                 <div id="results" class="empty-state">
-                    No matches found yet. Submit a lost item to begin.
+                    No matches found yet. Submit an item to begin.
                 </div>
             </div>
 
@@ -332,10 +451,31 @@
     </div>
 
     <script>
+        // --- DARK MODE LOGIC ---
+        // CSS handles the SVG icon swapping, we just toggle the attribute
+        const themeToggle = document.getElementById('themeToggle');
+        
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            
+            if (isDark) {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // --- SEARCH FORM LOGIC ---
         document.getElementById('lostForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            // Reset UI State
             const statNodes = document.getElementById('statNodes');
             const statCost = document.getElementById('statCost');
             const statStatus = document.getElementById('statStatus');
@@ -345,7 +485,7 @@
             statNodes.textContent = '...';
             statCost.textContent = '...';
             statStatus.textContent = 'Searching';
-            statStatus.style.color = 'var(--info)';
+            statStatus.style.color = 'var(--primary)';
             traceLog.innerHTML = '<div class="empty-state">Executing algorithm...</div>';
             resultsDiv.innerHTML = '<div class="empty-state">Calculating similarities...</div>';
 
@@ -377,7 +517,6 @@
                     return;
                 }
 
-                // Update Stats
                 const hasResults = data.results.length > 0;
                 statNodes.textContent = data.nodes_explored;
                 statCost.textContent = hasResults ? data.results[0].path_cost.toFixed(4) : 'N/A';
@@ -389,10 +528,9 @@
                     let badgeClass = 'expand';
                     let badgeText = t.action.replace('_', ' ');
                     
-                    if (t.action === 'goal') { badgeClass = 'goal'; badgeText = 'Goal Found'; }
+                    if (t.action === 'goal') { badgeClass = 'goal'; badgeText = 'Goal'; }
                     else if (t.action.includes('prune')) { badgeClass = 'prune'; badgeText = 'Pruned'; }
 
-                    // Format node ID (show item ID if it exists, otherwise show hierarchy level)
                     let nodeName = t.node_id ? `Item #${t.node_id}` : `Level: ${t.type}`;
 
                     return `
@@ -411,14 +549,13 @@
                 if (!hasResults) {
                     resultsDiv.innerHTML = `
                         <div class="empty-state" style="color: var(--danger);">
-                            <h3>No matches found above threshold (τ = ${payload.tau})</h3>
+                            <h3 style="font-family: 'Lora', serif;">No matches found (τ = ${payload.tau})</h3>
                             <p>Try lowering the threshold or changing the search criteria.</p>
                         </div>`;
                 } else {
                     resultsDiv.innerHTML = data.results.map(r => {
                         const percentage = (r.similarity * 100).toFixed(1);
                         
-                        // Format breakdown tags
                         let breakdownHtml = '';
                         if (r.breakdown) {
                             for (const [key, val] of Object.entries(r.breakdown)) {
@@ -435,7 +572,7 @@
                                 <div class="similarity-bar-container">
                                     <div class="similarity-bar" style="width: ${percentage}%"></div>
                                 </div>
-                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">
+                                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
                                     Path Cost: ${r.path_cost.toFixed(4)}
                                 </div>
                                 <div class="breakdown">
